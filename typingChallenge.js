@@ -328,6 +328,12 @@ function broadcastStartGame(gameSentence) {
     }
 }
 
+function broadcastEndGame(){
+  for (var i = 0; i < players.length; i++) {
+      io.sockets.connected[players[i].socketId].emit(emits.END_GAME);
+  }
+}
+
 function getNewGameSentence() {
     return "아버지 가방에 들어가신다";
 }
