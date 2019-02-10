@@ -282,7 +282,7 @@ function evaluate(socket, data, now) {
     if (data === _gameSentence) {
         var elapsedSec = (now - _gameStartTime) / 1000;
         var speed = (_gameSentence.length * 60) / elapsedSec;
-        _results.set(socket.username, speed);
+        _results.set(socket.username, Math.round(speed));
         sendResult(socket, speed);
     } else {
         sendResult(socket, 0);
