@@ -315,6 +315,11 @@ $(function() {
         log('['+data.gameSentence+']');
     });
 
+
+    socket.on('evaluateResult', (data) => {
+        log('이번 게임에서 타자 속도는 ' + data.result+'타/분 입니다.');
+    });
+
     socket.on('endGame', () => {
         log('게임이 종료 되었습니다.');
     });

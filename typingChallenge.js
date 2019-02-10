@@ -15,9 +15,12 @@ app.use(express.static(path.join(__dirname, 'public')));
 variables
 ********/
 var numUsers = 0;
-var gameisOn = false;
+var _gameisOn = false;
 var players = [];
+var _gameSentence;
+var _gameStartTime;
 
+var _results = [];
 /*******************
 socket.io event loop
 *******************/
@@ -28,8 +31,12 @@ io.on('connection', (socket) => {
         console.log('new message from  [' + socket.id + ']');
 
         var user = getPlayer(socket.id);
-        broadcastMessage(socket, data);
-
+        if(_gameisOn){
+          var now = new Date().getTime();
+          evaluate(socket, data, now);
+        }else{
+          broadcastMessage(socket, data);
+        }
         // handleNight(socket, data);
         // handleDay(socket, data);
     });
@@ -259,6 +266,21 @@ function userLeft(socket) {
     });
 }
 
+function evaluate(socket, data, now) {
+  if(data === _gameSentence){
+      var elapsedSec = (now - _gameStartTime)/1000;
+      var speed = (_gameSentence.length * 60)/elapsedSec;
+      var result = {
+        player : socket.username,
+        speed : speed
+      }
+      results.push(result);
+      sendResult(socket, speed);
+  }else{
+      sendResult(socket, 0);
+  }
+
+}
 function userJoined(socket, username) {
     var currentTime = new Date().getTime();
     console.log('add user from  [' + socket.id + '] : ' + currentTime);
@@ -291,7 +313,7 @@ function userJoined(socket, username) {
 
 setInterval(function() {
     startGame();
-}, 60000);
+}, 20000);
 
 function startGame() {
     var gameSentence = getNewGameSentence();
@@ -305,7 +327,7 @@ function startGame() {
                     broadcastStartGame(gameSentence);
                     setTimeout(function() {
                         broadcastEndGame();
-                    }, 30000);
+                    }, 10000);
                 }, 1000);
             }, 1000);
         }, 1000);
@@ -321,14 +343,26 @@ function broadcastReady(sec) {
 }
 
 function broadcastStartGame(gameSentence) {
+  _gameSentence = gameSentence;
+  _gameStartTime = new Date().getTime();
+  _gameisOn = true;
+  _results = [];
     for (var i = 0; i < players.length; i++) {
         io.sockets.connected[players[i].socketId].emit(emits.START_GAME, {
             gameSentence: gameSentence
         });
     }
 }
+function sendResult(socket, speed) {
+      socket.emit(emits.EVAL_RESULT, {
+        result: speed
+      });
+}
+
 
 function broadcastEndGame(){
+  _gameSentence = '';
+  _gameisOn = false;
   for (var i = 0; i < players.length; i++) {
       io.sockets.connected[players[i].socketId].emit(emits.END_GAME);
   }
@@ -337,6 +371,15 @@ function broadcastEndGame(){
 function getNewGameSentence() {
     return "아버지 가방에 들어가신다";
 }
+
+function getPlayer(socketId) {
+    for (var i = 0; i < players.length; i++) {
+        if (players[i].socketId == socketId) {
+            return players[i];
+        }
+    }
+}
+
 
 /*
 function startGame(socket) {
@@ -521,13 +564,6 @@ function validateKill(result) {
 }
 
 
-function getPlayer(socketId) {
-    for (var i = 0; i < players.length; i++) {
-        if (players[i].socketId == socketId) {
-            return players[i];
-        }
-    }
-}
 
 
 function getRole(username) {
