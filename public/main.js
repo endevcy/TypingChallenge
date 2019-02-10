@@ -265,7 +265,7 @@ $(function() {
     // Socket events
 
     // Whenever the server emits 'login', log the login message
-    socket.on('login', (data) => {
+    socket.on('userLogin', (data) => {
         connected = true;
         // Display the welcome message
         var message = "Welcome to Mafia world!";
@@ -276,18 +276,18 @@ $(function() {
     });
 
     // Whenever the server emits 'new message', update the chat body
-    socket.on('new message', (data) => {
+    socket.on('newMessage', (data) => {
         addChatMessage(data);
     });
 
     // Whenever the server emits 'user joined', log it in the chat body
-    socket.on('user joined', (data) => {
+    socket.on('userJoin', (data) => {
         log(data.username + ' joined');
         addParticipantsMessage(data);
     });
 
     // Whenever the server emits 'user left', log it in the chat body
-    socket.on('user left', (data) => {
+    socket.on('userLeft', (data) => {
         log(data.username + ' left');
         addParticipantsMessage(data);
         removeChatTyping(data);
@@ -305,6 +305,22 @@ $(function() {
 
     socket.on('full', () => {
         log('현재 방이 다 찼습니다.');
+    });
+
+    socket.on('readyGame', (data) => {
+        log(data.sec+'초 후 게임이 시작 됩니다.');
+    });
+
+    socket.on('startGame', (data) => {
+        log('['+data.gameSentence+']');
+    });
+
+    socket.on('endGame', () => {
+        log('게임이 종료 되었습니다.');
+    });
+
+    socket.on('stop typing', (data) => {
+        removeChatTyping(data);
     });
 
 
