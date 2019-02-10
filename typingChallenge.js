@@ -375,9 +375,12 @@ function onlyOne(socket) {
 function broadcastEndGame() {
     _gameSentence = '';
     _gameisOn = false;
+
+    let mapString = JSON.stringify(Array.from(_results));
+
     for (var i = 0; i < players.length; i++) {
         io.sockets.connected[players[i].socketId].emit(emits.END_GAME, {
-            ranking: _results
+            ranking: mapString
         });
     }
 }
