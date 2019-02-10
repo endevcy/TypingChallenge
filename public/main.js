@@ -301,8 +301,8 @@ $(function() {
         removeChatTyping(data);
     });
 
-    socket.on('full', () => {
-        log('현재 방이 다 찼습니다.');
+    socket.on('onlyOne', () => {
+        log('한 문제당 타이핑 기회는 한번 입니다.');
     });
 
     socket.on('readyGame', (data) => {
