@@ -20,7 +20,9 @@ var players = [];
 var _gameSentence;
 var _gameStartTime;
 
-var _results = [];
+var _results = new Map();
+
+
 /*******************
 socket.io event loop
 *******************/
@@ -31,14 +33,16 @@ io.on('connection', (socket) => {
         console.log('new message from  [' + socket.id + ']');
 
         var user = getPlayer(socket.id);
-        if(_gameisOn){
-          var now = new Date().getTime();
-          evaluate(socket, data, now);
-        }else{
-          broadcastMessage(socket, data);
+        if (_gameisOn) {
+            var now = new Date().getTime();
+            if (checkDuplication(socket)) {
+                evaluate(socket, data, now);
+            } else {
+                onlyOne(socket);
+            }
+        } else {
+            broadcastMessage(socket, data);
         }
-        // handleNight(socket, data);
-        // handleDay(socket, data);
     });
 
     socket.on('add user', (username) => {
@@ -266,21 +270,25 @@ function userLeft(socket) {
     });
 }
 
-function evaluate(socket, data, now) {
-  if(data === _gameSentence){
-      var elapsedSec = (now - _gameStartTime)/1000;
-      var speed = (_gameSentence.length * 60)/elapsedSec;
-      var result = {
-        player : socket.username,
-        speed : speed
-      }
-      results.push(result);
-      sendResult(socket, speed);
-  }else{
-      sendResult(socket, 0);
-  }
-
+function checkDuplication(socket) {
+    if (typeof _results.get(socket.username) !== 'undefined') {
+        return false;
+    } else {
+        return true;
+    }
 }
+
+function evaluate(socket, data, now) {
+    if (data === _gameSentence) {
+        var elapsedSec = (now - _gameStartTime) / 1000;
+        var speed = (_gameSentence.length * 60) / elapsedSec;
+        _results.set(socket.username, speed);
+        sendResult(socket, speed);
+    } else {
+        sendResult(socket, 0);
+    }
+}
+
 function userJoined(socket, username) {
     var currentTime = new Date().getTime();
     console.log('add user from  [' + socket.id + '] : ' + currentTime);
@@ -300,13 +308,13 @@ function userJoined(socket, username) {
         numUsers: numUsers
     });
 
-    if (!gameisOn && numUsers == config.MAXIMUM_USER_COUNT) {
-        (function(s) {
-            setTimeout(function() {
-                startGame(s);
-            }, 5000);
-        })(socket);
-    }
+    // if (!gameisOn && numUsers == config.MAXIMUM_USER_COUNT) {
+    //     (function(s) {
+    //         setTimeout(function() {
+    //             startGame(s);
+    //         }, 5000);
+    //     })(socket);
+    // }
 
     return true;
 }
@@ -343,29 +351,35 @@ function broadcastReady(sec) {
 }
 
 function broadcastStartGame(gameSentence) {
-  _gameSentence = gameSentence;
-  _gameStartTime = new Date().getTime();
-  _gameisOn = true;
-  _results = [];
+    _gameSentence = gameSentence;
+    _gameStartTime = new Date().getTime();
+    _gameisOn = true;
+    _results = new Map();
     for (var i = 0; i < players.length; i++) {
         io.sockets.connected[players[i].socketId].emit(emits.START_GAME, {
             gameSentence: gameSentence
         });
     }
 }
+
 function sendResult(socket, speed) {
-      socket.emit(emits.EVAL_RESULT, {
+    socket.emit(emits.EVAL_RESULT, {
         result: speed
-      });
+    });
 }
 
+function onlyOne(socket) {
+    socket.emit(emits.ONLY_ONE);
+}
 
-function broadcastEndGame(){
-  _gameSentence = '';
-  _gameisOn = false;
-  for (var i = 0; i < players.length; i++) {
-      io.sockets.connected[players[i].socketId].emit(emits.END_GAME);
-  }
+function broadcastEndGame() {
+    _gameSentence = '';
+    _gameisOn = false;
+    for (var i = 0; i < players.length; i++) {
+        io.sockets.connected[players[i].socketId].emit(emits.END_GAME, {
+            ranking: _results
+        });
+    }
 }
 
 function getNewGameSentence() {

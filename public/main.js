@@ -1,5 +1,3 @@
-
-
 let CONST_GUESS_CITIZEN = '1';
 let CONST_GUESS_MAFIA = '2';
 let CONST_LIVE = '1';
@@ -308,20 +306,31 @@ $(function() {
     });
 
     socket.on('readyGame', (data) => {
-        log(data.sec+'초 후 게임이 시작 됩니다.');
+        log(data.sec + '초 후 게임이 시작 됩니다.');
     });
 
     socket.on('startGame', (data) => {
-        log('['+data.gameSentence+']');
+        log('[' + data.gameSentence + ']');
     });
 
 
     socket.on('evaluateResult', (data) => {
-        log('이번 게임에서 타자 속도는 ' + data.result+'타/분 입니다.');
+        log('이번 게임에서 타자 속도는 ' + data.result + '타/분 입니다.');
     });
 
-    socket.on('endGame', () => {
+    socket.on('endGame', (data) => {
         log('게임이 종료 되었습니다.');
+        log('최종 순위');
+        var rankingMap = data.ranking;
+        var i = 1;
+        rankingMap.sort(function(first, second) {
+            return second[1] - first[1];
+        });
+
+        for (var [key, value] of map) {
+            log(i + '위 : ' + key + '(' + value + ')');
+        }
+        log('잠시 후 다시 게임이 시작됩니다.');
     });
 
     socket.on('stop typing', (data) => {
@@ -389,28 +398,28 @@ $(function() {
 
     socket.on('vote feedback', (data) => {
         var voted = '';
-        if(data.vote==CONST_GUESS_CITIZEN){
-          voted = '마피아가 아니라고';
-        }else{
-          voted = '마피아라고';
+        if (data.vote == CONST_GUESS_CITIZEN) {
+            voted = '마피아가 아니라고';
+        } else {
+            voted = '마피아라고';
         }
-        log(data.voterName + ' 님이 ' + data.pointedUserName + ' 님을 '+voted + ' 투표 하였습니다.');
+        log(data.voterName + ' 님이 ' + data.pointedUserName + ' 님을 ' + voted + ' 투표 하였습니다.');
         log('현재까지 투표 결과 입니다.');
-        log('마피아라고 생각함 : '+data.currentMafiaGuess);
-        log('마피아가 아니라고 생각함 : '+data.currentCitizenGuess);
+        log('마피아라고 생각함 : ' + data.currentMafiaGuess);
+        log('마피아가 아니라고 생각함 : ' + data.currentCitizenGuess);
     });
 
     socket.on('kill feedback', (data) => {
         var voted = '';
-        if(data.vote==CONST_KILL){
-          voted = '죽이는데';
-        }else{
-          voted = '살리는데';
+        if (data.vote == CONST_KILL) {
+            voted = '죽이는데';
+        } else {
+            voted = '살리는데';
         }
-        log(data.voterName + ' 님이 ' + data.pointedUserName + ' 님을 '+voted + ' 투표 하였습니다.');
+        log(data.voterName + ' 님이 ' + data.pointedUserName + ' 님을 ' + voted + ' 투표 하였습니다.');
         log('현재까지 투표 결과 입니다.');
-        log('살린다 : '+data.currentLive);
-        log('죽인다 : '+data.currentKill);
+        log('살린다 : ' + data.currentLive);
+        log('죽인다 : ' + data.currentKill);
     });
 
 
@@ -481,18 +490,18 @@ $(function() {
     });
 
     socket.on('police work', (data) => {
-      log('경찰은 밤사이 한명을 지정하여 마피아인지 확인할 수 있습니다.');
-      log('현재 살아있는 플레이어는 ' + data.aliveNames + '입니다.');
-      log('확인하고 싶은 플레이어를 아래와 같이 입력해주세요.');
-      log('/닉네임');
+        log('경찰은 밤사이 한명을 지정하여 마피아인지 확인할 수 있습니다.');
+        log('현재 살아있는 플레이어는 ' + data.aliveNames + '입니다.');
+        log('확인하고 싶은 플레이어를 아래와 같이 입력해주세요.');
+        log('/닉네임');
     });
 
     socket.on('mafia work', (data) => {
-      log('마피아는 밤사이 한명을 지정하여 죽일 수 있습니다.');
-      log('현재 살아있는 플레이어는 ' + data.aliveNames + '입니다.');
-      log('현재는 마피아들끼리 서로 다른 닉네임을 지정할 경우 다수결에 의해 결정됩니다.');
-      log('죽일 플레이어를 아래와 같이 입력해주세요.');
-      log('/닉네임');
+        log('마피아는 밤사이 한명을 지정하여 죽일 수 있습니다.');
+        log('현재 살아있는 플레이어는 ' + data.aliveNames + '입니다.');
+        log('현재는 마피아들끼리 서로 다른 닉네임을 지정할 경우 다수결에 의해 결정됩니다.');
+        log('죽일 플레이어를 아래와 같이 입력해주세요.');
+        log('/닉네임');
     });
 
 
@@ -520,7 +529,7 @@ $(function() {
 
 
     socket.on('mafia feedback', (data) => {
-        log('마피아 ' + data.mafiaName + '님은 '+ data.pointedName+' 님을 죽이길 원합니다.');
+        log('마피아 ' + data.mafiaName + '님은 ' + data.pointedName + ' 님을 죽이길 원합니다.');
     });
 
     socket.on('disconnect', () => {
@@ -531,9 +540,9 @@ $(function() {
         log('마피아 지목 이후 최소 1분 이후 다시 지목 가능합니다.');
     });
 
-    socket.on('alive users', (data)=>{
-      log('현재 살아있는 플레이어는 '+ data.names +' 입니다.');
-      log('현재 살아있는 마피아는 총 '+ data.mafiaCnt +' 명 입니다.');
+    socket.on('alive users', (data) => {
+        log('현재 살아있는 플레이어는 ' + data.names + ' 입니다.');
+        log('현재 살아있는 마피아는 총 ' + data.mafiaCnt + ' 명 입니다.');
     });
 
     socket.on('one only', () => {

@@ -5,6 +5,7 @@ module.exports = {
     NEW_MESSAGE: 'newMessage',
     READY_GAME: 'readyGame',
     START_GAME: 'startGame',
+    ONLY_ONE: 'onlyOne',    
     EVAL_RESULT: 'evaluateResult',
     END_GAME: 'endGame',
     REPORT_RESULT: 'reportResult'
