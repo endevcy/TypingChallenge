@@ -321,17 +321,21 @@ $(function() {
     socket.on('endGame', (data) => {
         log('게임이 종료 되었습니다.');
         log('최종 순위');
-        var rankingString = data.ranking;
-        var rankingMap = new Map(JSON.parse(rankingString));
+        var rankingArray = data.ranking;
+        var rankingMap = new Map();
 
+        for(var item of rankingArray){
+          rankingMap.set(item[0],item[1]);
+        }
         var i = 1;
 
         rankingMap[Symbol.iterator] = function* () {
-            yield* [...this.entries()].sort((a, b) => a[1] - b[1]);
+            yield* [...this.entries()].sort((a, b) => b[1] - a[1]);
         }
 
         for (var [key, value] of rankingMap) {
-            log(i + '위 : ' + key + '(' + value + ')');
+            log(i + '위 : ' + key + '(' + value + '타/분)');
+            i++;
         }
         log('잠시 후 다시 게임이 시작됩니다.');
     });

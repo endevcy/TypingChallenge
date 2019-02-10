@@ -283,7 +283,7 @@ function evaluate(socket, data, now) {
         var elapsedSec = (now - _gameStartTime) / 1000;
         var speed = (_gameSentence.length * 60) / elapsedSec;
         _results.set(socket.username, Math.round(speed));
-        sendResult(socket, speed);
+        sendResult(socket, Math.round(speed));
     } else {
         sendResult(socket, 0);
     }
@@ -376,11 +376,9 @@ function broadcastEndGame() {
     _gameSentence = '';
     _gameisOn = false;
 
-    let mapString = JSON.stringify(Array.from(_results));
-
     for (var i = 0; i < players.length; i++) {
         io.sockets.connected[players[i].socketId].emit(emits.END_GAME, {
-            ranking: mapString
+            ranking: Array.from(_results)
         });
     }
 }
