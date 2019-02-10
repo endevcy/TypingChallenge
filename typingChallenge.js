@@ -25,7 +25,7 @@ io.on('connection', (socket) => {
 
     console.log('client connected! socket.id : ' + socket.id);
     socket.on('new message', (data) => {
-        console.log('new message from  [' + socket.id + ']'); ?
+        console.log('new message from  [' + socket.id + ']');
 
         var user = getPlayer(socket.id);
         broadcastMessage(socket, data);
