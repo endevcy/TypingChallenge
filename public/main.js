@@ -323,9 +323,10 @@ $(function() {
         log('최종 순위');
         var rankingMap = data.ranking;
         var i = 1;
-        rankingMap.sort(function(first, second) {
-            return second[1] - first[1];
-        });
+
+        rankingMap[Symbol.iterator] = function* () {
+            yield* [...this.entries()].sort((a, b) => a[1] - b[1]);
+        }
 
         for (var [key, value] of map) {
             log(i + '위 : ' + key + '(' + value + ')');
